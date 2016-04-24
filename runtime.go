@@ -5,14 +5,8 @@ package sodium
 // #include <sodium.h>
 import "C"
 
-func RuntimeHasNeon() bool {
-	return C.sodium_runtime_has_neon() != 0
-}
-
-func RuntimeHasSse2() bool {
-	return C.sodium_runtime_has_sse2() != 0
-}
-
-func RuntimeHasSse3() bool {
-	return C.sodium_runtime_has_sse3() != 0
-}
+var (
+	RuntimeHasNeon = bool(C.sodium_runtime_has_neon() != 0)
+	RuntimeHasSse2 = bool(C.sodium_runtime_has_sse2() != 0)
+	RuntimeHasSse3 = bool(C.sodium_runtime_has_sse3() != 0)
+)

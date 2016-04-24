@@ -6,14 +6,23 @@ import "fmt"
 // Internal support functions
 //
 
-// CheckSize verifies the expected size of an input or output byte array.
-func CheckSize(buf []byte, expected int, descrip string) {
-	if len(buf) != expected {
-		panic(fmt.Sprintf("Incorrect %s buffer size, expected (%d), got (%d).", descrip, expected, len(buf)))
+// CheckTypedSize verifies the expected size of a Typed byte array.
+func checkTypedSize(typed Typed, descrip string) {
+	switch typed.(type) {
+	case *GenericHashKey:
+		got := typed.Length()
+		min, max := cryptoGenericHashBytesMin, cryptoGenericHashBytesMax
+		checkSizeInRange(got, min, max, descrip)
+	default:
+		expected := typed.Size()
+		got := typed.Length()
+		if got != expected {
+			panic(fmt.Sprintf("Incorrect %s buffer size, expected (%d), got (%d).\n", descrip, expected, got))
+		}
 	}
 }
 
-func CheckSizeInRange(size int, min int, max int, descrip string) {
+func checkSizeInRange(size int, min int, max int, descrip string) {
 	if size < min || size > max {
 		panic(fmt.Sprintf("Incorrect %s buffer size, expected (%d - %d), got (%d).", descrip, min, max, size))
 	}
