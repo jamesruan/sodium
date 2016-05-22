@@ -8,7 +8,6 @@ import "C"
 var (
 	cryptoAuthBytes     = int(C.crypto_auth_bytes())
 	cryptoAuthKeyBytes  = int(C.crypto_auth_keybytes())
-	cryptoAuthPrimitive = C.GoString(C.crypto_auth_primitive())
 )
 
 type MACKey struct {
