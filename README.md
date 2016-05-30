@@ -3,6 +3,8 @@ A wrapper for [libsodium](https://github.com/jedisct1/libsodium) in golang
 
 See documents [Here](https://godoc.org/github.com/jamesruan/sodium).
 
+Currently this is build against libsodium 1.0.10.
+
 Following functions included:
  - `crypto_auth` `crypto_auth_verify`
  - `crypto_sign_keypair` `crypto_sign_seed_keypair` `crypto_sign_ed25519_sk_to_seed` `crypto_sign_ed25519_sk_to_pk`
