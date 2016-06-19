@@ -17,6 +17,11 @@
 //    func (k SignSecretKey) PublicKey() SignPublicKey
 //    func (k SignSecretKey) Seed() SignSeed
 //
+//    //SignKP can be converted to BoxKP, although it is recommended to use separate keys for signing and encrytion.
+//    func (p SignKP) ToBox() BoxKP
+//    func (k SignSecretKey) ToBox() BoxSecretKey
+//    func (k SignPublicKey) ToBox() BoxPublicKey
+//
 //    //Message + Signature
 //    func (b Bytes) Sign(key SignSecretKey) (sm Bytes)
 //    func (b Bytes) SignOpen(key SignPublicKey) (m Bytes, err error)

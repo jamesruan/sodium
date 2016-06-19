@@ -9,6 +9,7 @@ Following functions included:
  - `crypto_auth` `crypto_auth_verify`
  - `crypto_sign_keypair` `crypto_sign_seed_keypair` `crypto_sign_ed25519_sk_to_seed` `crypto_sign_ed25519_sk_to_pk`
  - `crypto_sign` `crypto_sign_open` `crypto_sign_detached` `crypto_sign_verify_detached`
+ - `crypto_sign_ed25519_sk_to_curve25519` `crypto_sign_ed25519_pk_to_curve25519`
  - `crypto_scalarmult_base` `crypto_scalarmult`
  - `crypto_box_keypair` `crypto_box_seed_keypair`
  - `crypto_box_seal` `crypto_box_seal_open`

@@ -249,3 +249,29 @@ func ExamplePWHashStore() {
 	fmt.Println(err)
 	//Output: <nil>
 }
+
+func ExampleSignKP_ToBox() {
+	skp := MakeSignKP()
+	bkp := skp.ToBox()
+	rkp := MakeBoxKP()
+
+	sb := skp.SecretKey.ToBox()
+	pb := skp.PublicKey.ToBox()
+
+	fmt.Println(MemCmp(bkp.SecretKey.Bytes, sb.Bytes, bkp.SecretKey.Length()) == 0)
+	fmt.Println(MemCmp(bkp.PublicKey.Bytes, pb.Bytes, bkp.PublicKey.Length()) == 0)
+
+	n := BoxNonce{}
+	Randomize(&n)
+
+	bc := m.Box(n, rkp.PublicKey, bkp.SecretKey)
+	bom, err := bc.BoxOpen(n, bkp.PublicKey, rkp.SecretKey)
+
+	fmt.Println(err)
+	fmt.Println(MemCmp(bom, m, m.Length()) == 0)
+
+	//Output: true
+	//true
+	//<nil>
+	//true
+}
