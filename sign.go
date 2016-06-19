@@ -54,18 +54,18 @@ func SeedSignKP(seed SignSeed) SignKP {
 	}
 }
 
-//BoxSecretKey convert signing secret key into box secret key - ed25519 to curve25519 - returns BoxSecretKey.
-func (k SignSecretKey) BoxSecret() BoxSecretKey {
+//ToBox converts a signing secret key into a box secret key - ed25519 to curve25519 - returns BoxSecretKey.
+func (k SignSecretKey) ToBox() BoxSecretKey {
 	checkTypedSize(&k, "Sign SecretKey")
-	pkb := make([]byte, cryptoBoxSecretKeyBytes)
+	skb := make([]byte, cryptoBoxSecretKeyBytes)
 	C.crypto_sign_ed25519_sk_to_curve25519(
-		(*C.uchar)(&pkb[0]),
+		(*C.uchar)(&skb[0]),
 		(*C.uchar)(&k.Bytes[0]))
-	return BoxSecretKey{pkb}
+	return BoxSecretKey{skb}
 }
 
-//BoxPublic convert signing public key into box public key - ed25519 to curve25519 - returns BoxPublicKey.
-func (k SignPublicKey) BoxPublic() BoxPublicKey {
+//ToBox converts a signing public key into a box public key - ed25519 to curve25519 - returns BoxPublicKey.
+func (k SignPublicKey) ToBox() BoxPublicKey {
 	checkTypedSize(&k, "Sign PublicKey")
 	pkb := make([]byte, cryptoBoxPublicKeyBytes)
 	C.crypto_sign_ed25519_pk_to_curve25519(
@@ -74,11 +74,11 @@ func (k SignPublicKey) BoxPublic() BoxPublicKey {
 	return BoxPublicKey{pkb}
 }
 
-//MakeBoxKP convert pair of signing key into pair of box key - ed25519 to curve25519 - returns BoxKP
-func (p SignKP) MakeBoxKP() BoxKP {
+//ToBox converts a pair of signing key into a pair of box key - ed25519 to curve25519 - returns BoxKP.
+func (p SignKP) ToBox() BoxKP {
 	return BoxKP{
-		p.PublicKey.BoxPublic(),
-		p.SecretKey.BoxSecret(),
+		p.PublicKey.ToBox(),
+		p.SecretKey.ToBox(),
 	}
 }
 

@@ -250,13 +250,13 @@ func ExamplePWHashStore() {
 	//Output: <nil>
 }
 
-func ExampleBytes_SignToBox() {
+func ExampleSignKP_ToBox() {
 	skp := MakeSignKP()
-	bkp := skp.MakeBoxKP()
+	bkp := skp.ToBox()
 	rkp := MakeBoxKP()
 
-	sb := skp.SecretKey.BoxSecret()
-	pb := skp.PublicKey.BoxPublic()
+	sb := skp.SecretKey.ToBox()
+	pb := skp.PublicKey.ToBox()
 
 	fmt.Println(MemCmp(bkp.SecretKey.Bytes, sb.Bytes, bkp.SecretKey.Length()) == 0)
 	fmt.Println(MemCmp(bkp.PublicKey.Bytes, pb.Bytes, bkp.PublicKey.Length()) == 0)
