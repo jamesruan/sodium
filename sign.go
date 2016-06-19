@@ -54,7 +54,7 @@ func SeedSignKP(seed SignSeed) SignKP {
 	}
 }
 
-//extracts the BoxSecretKey from the SignSecretKey.
+//BoxSecretKey convert signing secret key into box secret key - ed25519 to curve25519 - returns BoxSecretKey.
 func (k SignSecretKey) BoxSecret() BoxSecretKey {
 	checkTypedSize(&k, "Sign SecretKey")
 	pkb := make([]byte, cryptoBoxSecretKeyBytes)
@@ -64,7 +64,7 @@ func (k SignSecretKey) BoxSecret() BoxSecretKey {
 	return BoxSecretKey{pkb}
 }
 
-//extracts the BoxPublicKey from the SignPublicKey.
+//BoxPublic convert signing public key into box public key - ed25519 to curve25519 - returns BoxPublicKey.
 func (k SignPublicKey) BoxPublic() BoxPublicKey {
 	checkTypedSize(&k, "Sign PublicKey")
 	pkb := make([]byte, cryptoBoxPublicKeyBytes)
@@ -74,12 +74,12 @@ func (k SignPublicKey) BoxPublic() BoxPublicKey {
 	return BoxPublicKey{pkb}
 }
 
-//Generate BoxKeyPair from SignKeyPair
-func (p SignKP) MakeBoxKP() BoxKP{
-		return BoxKP{
-				p.PublicKey.BoxPublic(),
-				p.SecretKey.BoxSecret(),
-		}
+//MakeBoxKP convert pair of signing key into pair of box key - ed25519 to curve25519 - returns BoxKP
+func (p SignKP) MakeBoxKP() BoxKP {
+	return BoxKP{
+		p.PublicKey.BoxPublic(),
+		p.SecretKey.BoxSecret(),
+	}
 }
 
 type SignSeed struct {
