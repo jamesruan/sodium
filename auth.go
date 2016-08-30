@@ -6,8 +6,8 @@ package sodium
 import "C"
 
 var (
-	cryptoAuthBytes     = int(C.crypto_auth_bytes())
-	cryptoAuthKeyBytes  = int(C.crypto_auth_keybytes())
+	cryptoAuthBytes    = int(C.crypto_auth_bytes())
+	cryptoAuthKeyBytes = int(C.crypto_auth_keybytes())
 )
 
 type MACKey struct {
@@ -60,4 +60,3 @@ func (b Bytes) AuthVerify(mac MAC, key MACKey) (err error) {
 
 	return
 }
-

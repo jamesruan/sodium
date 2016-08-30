@@ -28,7 +28,7 @@ func MakeSignKP() SignKP {
 		panic("see libsodium")
 	}
 
-	return SignKP {
+	return SignKP{
 		SignPublicKey{pkb},
 		SignSecretKey{skb},
 	}
@@ -48,7 +48,7 @@ func SeedSignKP(seed SignSeed) SignKP {
 		panic("see libsodium")
 	}
 
-	return SignKP {
+	return SignKP{
 		SignPublicKey{pkb},
 		SignSecretKey{skb},
 	}

@@ -253,4 +253,3 @@ func (b Bytes) BoxOpenDetached(mac BoxMAC, n BoxNonce, pk BoxPublicKey, sk BoxSe
 
 	return
 }
-

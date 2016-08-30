@@ -13,6 +13,7 @@ var (
 type ShortHash struct {
 	Bytes
 }
+
 func (s ShortHash) Size() int {
 	return cryptoShortHashBytes
 }
@@ -20,6 +21,7 @@ func (s ShortHash) Size() int {
 type ShortHashKey struct {
 	Bytes
 }
+
 func (s ShortHashKey) Size() int {
 	return cryptoShortHashKeyBytes
 }

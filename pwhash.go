@@ -6,15 +6,14 @@ package sodium
 import "C"
 
 var (
-	cryptoPWHashSaltBytes = int(C.crypto_pwhash_saltbytes())
-	cryptoPWHashStrBytes = int(C.crypto_pwhash_strbytes())
+	cryptoPWHashSaltBytes           = int(C.crypto_pwhash_saltbytes())
+	cryptoPWHashStrBytes            = int(C.crypto_pwhash_strbytes())
 	CryptoPWHashOpsLimitInteractive = int(C.crypto_pwhash_opslimit_interactive())
 	CryptoPWHashMemLimitInteractive = int(C.crypto_pwhash_memlimit_interactive())
-	CryptoPWHashOpsLimitModerate = int(C.crypto_pwhash_opslimit_moderate())
-	CryptoPWHashMemLimitModerate = int(C.crypto_pwhash_memlimit_moderate())
-	CryptoPWHashOpsLimitSensitive = int(C.crypto_pwhash_opslimit_sensitive())
-	CryptoPWHashMemLimitSensitive = int(C.crypto_pwhash_memlimit_sensitive())
-
+	CryptoPWHashOpsLimitModerate    = int(C.crypto_pwhash_opslimit_moderate())
+	CryptoPWHashMemLimitModerate    = int(C.crypto_pwhash_memlimit_moderate())
+	CryptoPWHashOpsLimitSensitive   = int(C.crypto_pwhash_opslimit_sensitive())
+	CryptoPWHashMemLimitSensitive   = int(C.crypto_pwhash_memlimit_sensitive())
 )
 
 type PWHashSalt struct {

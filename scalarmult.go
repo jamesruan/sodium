@@ -42,7 +42,6 @@ func CryptoScalarmultBase(n Scalar) (q Scalar) {
 	return Scalar{qb}
 }
 
-
 //CryptoScalarmult calculates common key 'q' from private key 'n' and
 //other's public key 'p'
 func CryptoScalarmult(n, p Scalar) (q ScalarMult) {
@@ -59,4 +58,3 @@ func CryptoScalarmult(n, p Scalar) (q ScalarMult) {
 
 	return ScalarMult{qb}
 }
-

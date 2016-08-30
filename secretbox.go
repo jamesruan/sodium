@@ -6,9 +6,9 @@ package sodium
 import "C"
 
 var (
-	cryptoSecretBoxKeyBytes     = int(C.crypto_secretbox_keybytes())
-	cryptoSecretBoxNonceBytes   = int(C.crypto_secretbox_noncebytes())
-	cryptoSecretBoxMacBytes     = int(C.crypto_secretbox_macbytes())
+	cryptoSecretBoxKeyBytes   = int(C.crypto_secretbox_keybytes())
+	cryptoSecretBoxNonceBytes = int(C.crypto_secretbox_noncebytes())
+	cryptoSecretBoxMacBytes   = int(C.crypto_secretbox_macbytes())
 )
 
 type SecretBoxKey struct {

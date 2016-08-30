@@ -46,7 +46,7 @@ func (b Bytes) AEADCPEncrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	c = make([]byte, b.Length() + cryptoAEADChaCha20Poly1305IETFABytes)
+	c = make([]byte, b.Length()+cryptoAEADChaCha20Poly1305IETFABytes)
 	var outlen C.ulonglong
 
 	if int(C.crypto_aead_chacha20poly1305_ietf_encrypt(
@@ -73,7 +73,7 @@ func (b Bytes) AEADCPEncrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes) {
 func (b Bytes) AEADCPDecrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (m Bytes, err error) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
-	m = make([]byte, b.Length() - cryptoAEADChaCha20Poly1305IETFABytes)
+	m = make([]byte, b.Length()-cryptoAEADChaCha20Poly1305IETFABytes)
 	var outlen C.ulonglong
 
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt(

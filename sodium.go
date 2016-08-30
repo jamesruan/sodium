@@ -177,7 +177,7 @@ func (b *Bytes) setBytes(s Bytes) {
 //Nonce is used to protect secret key. It is important to not use the same nonce for a given key.
 type Nonce interface {
 	Typed
-	Next()	//Next unused nonce
+	Next() //Next unused nonce
 }
 
 //Randomize fill the Typed with random bytes.

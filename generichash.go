@@ -22,11 +22,11 @@ var (
 //The Hash's and key's size can be any between 16 bytes (128 bits) to
 // 64 bytes (512 bits) based on different application.
 type GenericHash struct {
-	size int
+	size      int
 	blocksize int
-	key *GenericHashKey
-	sum []byte
-	state *C.struct_crypto_generichash_blake2b_state
+	key       *GenericHashKey
+	sum       []byte
+	state     *C.struct_crypto_generichash_blake2b_state
 }
 
 type GenericHashKey struct {
@@ -52,11 +52,11 @@ func NewGenericHash(outlen int) GenericHash {
 	checkSizeInRange(outlen, cryptoGenericHashBytesMin, cryptoGenericHashBytesMax, "out")
 	state := new(C.struct_crypto_generichash_blake2b_state)
 	hash := GenericHash{
-		size: outlen,
+		size:      outlen,
 		blocksize: 128,
-		key: nil,
-		sum: nil,
-		state: state,
+		key:       nil,
+		sum:       nil,
+		state:     state,
 	}
 	hash.Reset()
 	return hash
@@ -68,11 +68,11 @@ func NewGenericHashKeyed(outlen int, key GenericHashKey) GenericHash {
 	state := new(C.struct_crypto_generichash_blake2b_state)
 	checkTypedSize(&key, "generic hash key")
 	hash := GenericHash{
-		size: outlen,
+		size:      outlen,
 		blocksize: 128,
-		key: &key,
-		sum: nil,
-		state: state,
+		key:       &key,
+		sum:       nil,
+		state:     state,
 	}
 	hash.Reset()
 	return hash
@@ -114,7 +114,7 @@ func (g *GenericHash) Reset() {
 //Use GenericHash.Write([]byte) to hash chunks of message.
 //
 //Implements crypto/hash.Hash
-func (g *GenericHash) Write(p []byte)(n int, err error) {
+func (g *GenericHash) Write(p []byte) (n int, err error) {
 	if g.sum != nil {
 		return 0, fmt.Errorf("hash finalized")
 	}
