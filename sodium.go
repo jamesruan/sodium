@@ -17,7 +17,8 @@
 //    func (k SignSecretKey) PublicKey() SignPublicKey
 //    func (k SignSecretKey) Seed() SignSeed
 //
-//    //SignKP can be converted to BoxKP, although it is recommended to use separate keys for signing and encrytion.
+//    //SignKP can be converted to BoxKP
+//    //It is recommended to use separate keys for signing and encrytion.
 //    func (p SignKP) ToBox() BoxKP
 //    func (k SignSecretKey) ToBox() BoxSecretKey
 //    func (k SignPublicKey) ToBox() BoxPublicKey
@@ -35,8 +36,8 @@
 //Anonymous Public Key Encryption
 //
 //An anonymous can encrypt a message with an ephemeral key pair and reveiver's
-//PublicKey. The receiver can decrypt the message with its SecretKey but can not
-//authenticates the sender.
+//PublicKey. The receiver can decrypt the message with its SecretKey. Only the
+//receiver is authenticated.
 //
 //
 //    type BoxKP struct {
@@ -54,6 +55,7 @@
 //Authenticated Public Key Encryption
 //
 //Authenticated Box can be used to pass encrypt message from a known sender to a known receiver.
+//The sender and the receiver are both authenticated to each other.
 //
 //A one-time shared nonce is also generated and passed to protect the key pairs and messages.
 //
@@ -98,10 +100,11 @@
 //
 //Secret Key Authentication
 //
-//One holder of a secret key authenticates message with MAC.
+//One holder of a secret key authenticates the message with MAC.
 //
-//Holders of the key can verify the message's authenticity.
+//    //Holders of the key can generate a MAC for the message.
 //    func (b Bytes) Auth(key MACKey) (mac MAC)
+//    //Holders of the key can verify the message's authenticity.
 //    func (b Bytes) AuthVerify(mac MAC, key MACKey) (err error)
 //
 //(HMAC-SHA512256)
@@ -109,7 +112,7 @@
 //Secret Key Encryption
 //
 //Use a secret key and a nonce to protect the key, messages could be encrypted
-//into a SecretBox
+//into a SecretBox. The encrypted data's intergrity is checked when decryption.
 //
 //    func (n *SecretBoxNonce) Next()
 //
@@ -126,9 +129,10 @@
 //Authenticated Encryption with Additional Data
 //
 //Use a secret key and a nonce to protect the key, messages could be encrypted.
-//Optional additional data and the message is authenticited with an authentication tag.
-//
-//Decryption not be performed before verify the authentication tag is verified.
+//Optional additional data and the message is authenticited with an
+//authentication tag. Both intergrity and authenticity is checked when
+//decryption. The decryption would not be performed unless the authentication
+//tag is verified.
 //
 //    func (n *AEADCPNonce) Next()
 //
