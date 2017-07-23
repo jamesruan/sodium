@@ -4,6 +4,7 @@ package sodium
 // #include <stdlib.h>
 // #include <sodium.h>
 import "C"
+import "unsafe"
 
 var (
 	cryptoPWHashSaltBytes           = int(C.crypto_pwhash_saltbytes())
@@ -40,6 +41,7 @@ func PWHash(t Typed, pw string, salt PWHashSalt, opslimit int, memlimit int) {
 
 	s := make([]byte, outlen)
 	pwc := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwc))
 
 	if int(C.crypto_pwhash(
 		(*C.uchar)(&s[0]),
@@ -60,6 +62,7 @@ func PWHash(t Typed, pw string, salt PWHashSalt, opslimit int, memlimit int) {
 func PWHashStore(pw string) PWHashStr {
 	s := make([]C.char, cryptoPWHashStrBytes)
 	pwc := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwc))
 
 	if int(C.crypto_pwhash_str(
 		&s[0],
@@ -76,6 +79,7 @@ func PWHashStore(pw string) PWHashStr {
 func PWHashStoreSensitive(pw string) PWHashStr {
 	s := make([]C.char, cryptoPWHashStrBytes)
 	pwc := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwc))
 
 	if int(C.crypto_pwhash_str(
 		&s[0],
@@ -90,9 +94,13 @@ func PWHashStoreSensitive(pw string) PWHashStr {
 
 //PWHashVerify verifies password.
 func (s PWHashStr) PWHashVerify(pw string) (err error) {
+	sc := C.CString(s.string)
+	defer C.free(unsafe.Pointer(sc))
+	pwc := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwc))
 	if int(C.crypto_pwhash_str_verify(
-		C.CString(s.string),
-		C.CString(pw),
+		sc,
+		pwc,
 		(C.ulonglong)(len(pw)))) != 0 {
 		err = ErrPassword
 	}
