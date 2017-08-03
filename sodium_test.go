@@ -213,6 +213,22 @@ func ExampleBytes_AEADCPEncrypt() {
 	//true
 }
 
+func ExampleBytes_AEADCPVerify() {
+	key := AEADCPKey{}
+	Randomize(&key)
+
+	n := AEADCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e := m.AEADCPEncrypt(ad, n, key)
+
+	err := e.AEADCPVerify(ad, n, key)
+	fmt.Println(err)
+	//Output: <nil>
+}
+
 func ExampleBytes_AEADCPEncryptDetached() {
 	key := AEADCPKey{}
 	Randomize(&key)
@@ -229,6 +245,22 @@ func ExampleBytes_AEADCPEncryptDetached() {
 	fmt.Println(MemCmp(md, m, m.Length()) == 0)
 	//Output: <nil>
 	//true
+}
+
+func ExampleBytes_AEADCPVerifyDetached() {
+	key := AEADCPKey{}
+	Randomize(&key)
+
+	n := AEADCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e, mac := m.AEADCPEncryptDetached(ad, n, key)
+
+	err := e.AEADCPVerifyDetached(mac, ad, n, key)
+	fmt.Println(err)
+	//Output: <nil>
 }
 
 func ExamplePWHashDefault() {

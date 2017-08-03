@@ -17,7 +17,7 @@ var (
 	cryptoGenericHashStateBytes  = int(C.crypto_generichash_statebytes())
 )
 
-//GenericHash provides a BLAKE2b (RFC7693) hash, in interface of crypto/hash.Hash.
+//GenericHash provides a BLAKE2b (RFC7693) hash, in interface of hash.Hash.
 //
 //The Hash's and key's size can be any between 16 bytes (128 bits) to
 // 64 bytes (512 bits) based on different application.
@@ -80,17 +80,17 @@ func NewGenericHashKeyed(outlen int, key GenericHashKey) GenericHash {
 
 //Output length in bytes.
 //
-//Implements crypto/hash.Hash
+//Implements hash.Hash
 func (g GenericHash) Size() int {
 	return g.size
 }
 
-//Implements crypto/hash.Hash
+//Implements hash.Hash
 func (g GenericHash) BlockSize() int {
 	return g.blocksize
 }
 
-//Implements crypto/hash.Hash
+//Implements hash.Hash
 func (g *GenericHash) Reset() {
 	if g.key != nil {
 		if int(C.crypto_generichash_init(
@@ -113,7 +113,7 @@ func (g *GenericHash) Reset() {
 
 //Use GenericHash.Write([]byte) to hash chunks of message.
 //
-//Implements crypto/hash.Hash
+//Implements hash.Hash
 func (g *GenericHash) Write(p []byte) (n int, err error) {
 	if g.sum != nil {
 		return 0, fmt.Errorf("hash finalized")
@@ -141,15 +141,15 @@ func (g *GenericHash) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-//Return appended the Sum before b.
+//Return appended the Sum after b.
 //
-//Implements crypto/hash.Hash.
+//Implements hash.Hash.
 //NOTE: Repeated call is allowed. But can't call Write() after Sum().
 // Sum() will change the underlying state.
-// It is not consistent with the definition of crypto/hash.Hash.
+// It is not consistent with the definition of hash.Hash.
 func (g *GenericHash) Sum(b []byte) []byte {
 	if g.sum != nil {
-		return append(g.sum, b...)
+		return append(b, g.sum...)
 	}
 	g.sum = make([]byte, g.size)
 	if int(C.crypto_generichash_final(
@@ -158,5 +158,5 @@ func (g *GenericHash) Sum(b []byte) []byte {
 		(C.size_t)(g.size))) != 0 {
 		panic("see libsodium")
 	}
-	return append(g.sum, b...)
+	return append(b, g.sum...)
 }
