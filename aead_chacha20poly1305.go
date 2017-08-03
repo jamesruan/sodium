@@ -66,7 +66,7 @@ func (b Bytes) AEADCPEncrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes) {
 	return
 }
 
-//AEADCPEncrypt decrypts message with AEADCPKey, and AEADCPNonce.
+//AEADCPDecrypt decrypts message with AEADCPKey, and AEADCPNonce.
 //The appended authenticated tag is verified with additional data 'ad' before decryption.
 //
 //It returns an error if decryption failed.
@@ -119,7 +119,7 @@ func (b Bytes) AEADCPEncryptDetached(ad Bytes, n AEADCPNonce, k AEADCPKey) (c By
 	return
 }
 
-//AEADCPEncryptDetached decrypts message with AEADCPKey, and AEADCPNonce.
+//AEADCPDecryptDetached decrypts message with AEADCPKey, and AEADCPNonce.
 //The separated authenticated tag is verified with additional data 'ad' before decryption.
 //
 //It returns an error if decryption failed.
@@ -131,6 +131,53 @@ func (b Bytes) AEADCPDecryptDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k A
 
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
 		(*C.uchar)(&m[0]),
+		(*C.uchar)(nil),
+		(*C.uchar)(&b[0]),
+		(C.ulonglong)(b.Length()),
+		(*C.uchar)(&mac.Bytes[0]),
+		(*C.uchar)(&ad[0]),
+		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(&n.Bytes[0]),
+		(*C.uchar)(&k.Bytes[0]))) != 0 {
+		err = ErrDecryptAEAD
+	}
+	return
+}
+
+//AEADCPVerify decrypts message with AEADCPKey, and AEADCPNonce without writing decrypted data.
+//The appended authenticated tag is verified with additional data 'ad' before decryption.
+//
+//It returns an error if decryption failed.
+func (b Bytes) AEADCPVerify(ad Bytes, n AEADCPNonce, k AEADCPKey) (err error) {
+	checkTypedSize(&n, "public nonce")
+	checkTypedSize(&k, "secret key")
+
+	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt(
+		(*C.uchar)(nil),
+		(*C.ulonglong)(nil),
+		(*C.uchar)(nil),
+		(*C.uchar)(&b[0]),
+		(C.ulonglong)(b.Length()),
+		(*C.uchar)(&ad[0]),
+		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(&n.Bytes[0]),
+		(*C.uchar)(&k.Bytes[0]))) != 0 {
+		err = ErrDecryptAEAD
+	}
+	return
+}
+
+//AEADCPVerifyDetached decrypts message with AEADCPKey, and AEADCPNonce without writing decrypted data.
+//The separated authenticated tag is verified with additional data 'ad' before decryption.
+//
+//It returns an error if decryption failed.
+func (b Bytes) AEADCPVerifyDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k AEADCPKey) (err error) {
+	checkTypedSize(&mac, "public mac")
+	checkTypedSize(&n, "public nonce")
+	checkTypedSize(&k, "secret key")
+
+	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+		(*C.uchar)(nil),
 		(*C.uchar)(nil),
 		(*C.uchar)(&b[0]),
 		(C.ulonglong)(b.Length()),
