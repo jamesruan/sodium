@@ -282,6 +282,14 @@ func ExamplePWHashStore() {
 	//Output: <nil>
 }
 
+func ExamplePWHashStoreFromString() {
+	hash := PWHashStore("test").Value()
+	err := NewPWHashStr(hash).PWHashVerify("test")
+
+	fmt.Println(err)
+	//Output: <nil>
+}
+
 func ExampleSignKP_ToBox() {
 	skp := MakeSignKP()
 	bkp := skp.ToBox()

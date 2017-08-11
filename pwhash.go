@@ -29,6 +29,11 @@ type PWHashStr struct {
 	string
 }
 
+// NewPWHashStr constructs a PWHashStr for a string value.
+func NewPWHashStr(value string) PWHashStr {
+	return PWHashStr{value}
+}
+
 func PWHashDefault(t Typed, pw string, salt PWHashSalt) {
 	PWHash(t, pw, salt, CryptoPWHashOpsLimitInteractive, CryptoPWHashMemLimitInteractive)
 }
@@ -105,4 +110,9 @@ func (s PWHashStr) PWHashVerify(pw string) (err error) {
 		err = ErrPassword
 	}
 	return
+}
+
+// Value returns the string value of the PWHashStr.
+func (s PWHashStr) Value() string {
+	return s.string
 }
