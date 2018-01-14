@@ -207,3 +207,62 @@ func (b Bytes) SignOpen(key SignPublicKey) (m Bytes, err error) {
 	m = m[:mlen]
 	return
 }
+
+type SignState struct {
+	state *C.struct_crypto_sign_ed25519ph_state
+}
+
+// MakeSignState creates an empty state for multi-part messages that can't fit
+// in memory.
+func MakeSignState() SignState {
+	state := new(C.struct_crypto_sign_ed25519ph_state)
+	s := SignState{state}
+	if int(C.crypto_sign_init(
+		s.state)) != 0 {
+		panic("see libsodium")
+	}
+	return s
+}
+
+// Update the state by add more data.
+func (s *SignState) Update(b []byte) {
+	if int(C.crypto_sign_update(
+		s.state,
+		(*C.uchar)(&b[0]),
+		(C.ulonglong)(len(b)))) != 0 {
+		panic("see libsodium")
+	}
+	return
+}
+
+// Sign a signature for the current state.
+func (s SignState) Sign(key SignSecretKey) Signature {
+	checkTypedSize(&key, "Sign SecretKey")
+	sigb := make([]byte, cryptoSignBytes)
+	var siglen C.ulonglong
+
+	if int(C.crypto_sign_final_create(
+		s.state,
+		(*C.uchar)(&sigb[0]),
+		&siglen,
+		(*C.uchar)(&key.Bytes[0]))) != 0 {
+		panic("see libsodium")
+	}
+
+	return Signature{sigb[:siglen]}
+}
+
+// Verify the signature with the current state and public key.
+//
+// It returns an error if verification failed.
+func (s SignState) Verify(sig Signature, key SignPublicKey) (err error) {
+	checkTypedSize(&sig, "Signature")
+	checkTypedSize(&key, "Sign PublicKey")
+	if int(C.crypto_sign_final_verify(
+		s.state,
+		(*C.uchar)(&sig.Bytes[0]),
+		(*C.uchar)(&key.Bytes[0]))) != 0 {
+		err = ErrOpenSign
+	}
+	return
+}

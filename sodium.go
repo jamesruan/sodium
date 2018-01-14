@@ -31,7 +31,15 @@
 //    func (b Bytes) SignDetached(key SignSecretKey) (sig Signature)
 //    func (b Bytes) SignVerifyDetached(sig Signature, key SignPublicKey) (err error)
 //
-//(EdDSA25519)
+//(Ed25519)
+//
+//    //for multi-part messages that can't fit in memory
+//    func MakeSignState() SignState
+//    func (s SignState) Update(b []byte)
+//    func (s SignState) Sign(key SignSecretKey) Signature
+//    func (s SignState) Verify(sig Signature, key SignPublicKey) (err error)
+//
+//(Ed25519ph)
 //
 //Anonymous Public Key Encryption
 //
