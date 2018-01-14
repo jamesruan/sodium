@@ -276,7 +276,9 @@ func ExamplePWHashDefault() {
 
 func ExamplePWHashStore() {
 	s := PWHashStore("test")
-	err := s.PWHashVerify("test")
+	str := s.Value() // str for store
+	t := LoadPWHashStr(str) // load from storage
+	err := t.PWHashVerify("test")
 
 	fmt.Println(err)
 	//Output: <nil>

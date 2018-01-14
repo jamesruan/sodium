@@ -25,8 +25,33 @@ func (s PWHashSalt) Size() int {
 	return cryptoPWHashSaltBytes
 }
 
+// PWHashStr implements the Typed interface
 type PWHashStr struct {
 	string
+}
+
+func LoadPWHashStr(b Bytes) PWHashStr {
+	t := new(PWHashStr)
+	t.setBytes(b)
+	return *t
+}
+
+func (s PWHashStr) Value() Bytes {
+	return Bytes(s.string)
+}
+
+func (s PWHashStr) Size() int {
+	return cryptoPWHashStrBytes
+}
+
+func (s PWHashStr) Length() int {
+	return len(s.string)
+}
+
+func (s *PWHashStr) setBytes(b Bytes) {
+	t := PWHashStr{string(b[:])}
+	checkTypedSize(&t, "PWHashStr")
+	*s = t
 }
 
 func PWHashDefault(t Typed, pw string, salt PWHashSalt) {
@@ -72,7 +97,7 @@ func PWHashStore(pw string) PWHashStr {
 		(C.size_t)(CryptoPWHashMemLimitModerate))) != 0 {
 		panic("see libsodium")
 	}
-	return PWHashStr{C.GoString(&s[0])}
+	return PWHashStr{C.GoStringN(&s[0], C.int(cryptoPWHashStrBytes))}
 }
 
 //PWHashStoreSensitive use sensitive profile to pack hashed password into PWHashStr.
