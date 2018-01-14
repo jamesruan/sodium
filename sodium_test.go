@@ -276,7 +276,7 @@ func ExamplePWHashDefault() {
 
 func ExamplePWHashStore() {
 	s := PWHashStore("test")
-	str := s.Value() // str for store
+	str := s.Value()        // str for store
 	t := LoadPWHashStr(str) // load from storage
 	err := t.PWHashVerify("test")
 
@@ -307,5 +307,16 @@ func ExampleSignKP_ToBox() {
 	//Output: true
 	//true
 	//<nil>
+	//true
+}
+
+func ExampleMasterKey_Derive() {
+	mk := MakeMasterKey()
+	context := MakeKeyContext("testblablabla") // only first CryptoKDFContextBytes is used
+	fmt.Println(context)
+	sk := mk.Derive(CryptoKDFBytesMin, 0, context)
+
+	fmt.Println(sk.Length() == CryptoKDFBytesMin)
+	//Output: testblab
 	//true
 }

@@ -147,6 +147,15 @@
 //    func (b Bytes) AEADCPVerifyDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k AEADCPKey) (err error)
 //
 //AEADCP* (ChaCha20-Poly1305_IETF)
+//
+//Key Derivation
+//
+//Deriving subkeys from a single high-entropy key
+//
+//    func MakeMasterKey() MasterKey
+//    func MakeKeyContext(s string) KeyContext
+//    func (m MasterKey) Derive(length int, id uint64, context KeyContext) SubKey
+//KDF (BLAKE2B)
 package sodium
 
 import "errors"

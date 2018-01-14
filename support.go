@@ -13,6 +13,10 @@ func checkTypedSize(typed Typed, descrip string) {
 		got := typed.Length()
 		min, max := cryptoGenericHashBytesMin, cryptoGenericHashBytesMax
 		checkSizeInRange(got, min, max, descrip)
+	case *SubKey:
+		got := typed.Length()
+		min, max := CryptoKDFBytesMin, CryptoKDFBytesMax
+		checkSizeInRange(got, min, max, descrip)
 	default:
 		expected := typed.Size()
 		got := typed.Length()
