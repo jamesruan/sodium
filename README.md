@@ -3,12 +3,13 @@ A wrapper for [libsodium](https://github.com/jedisct1/libsodium) in golang
 
 See documents [![GoDoc](https://godoc.org/github.com/jamesruan/sodium?status.svg)](https://godoc.org/github.com/jamesruan/sodium).
 
-Currently this is build against libsodium 1.0.11.
+Currently this is build against libsodium 1.0.12.
 
 Following functions included:
  - `crypto_auth` `crypto_auth_verify`
  - `crypto_sign_keypair` `crypto_sign_seed_keypair` `crypto_sign_ed25519_sk_to_seed` `crypto_sign_ed25519_sk_to_pk`
  - `crypto_sign` `crypto_sign_open` `crypto_sign_detached` `crypto_sign_verify_detached`
+ - `crypto_sign_init` `crypto_sign_update` `crypto_sign_final_create` `crypto_sign_final_verify`
  - `crypto_sign_ed25519_sk_to_curve25519` `crypto_sign_ed25519_pk_to_curve25519`
  - `crypto_scalarmult_base` `crypto_scalarmult`
  - `crypto_box_keypair` `crypto_box_seed_keypair`
@@ -20,6 +21,7 @@ Following functions included:
  - `crypto_pwhash_opslimit_moderate` `crypto_pwhash_memlimit_moderate`
  - `crypto_pwhash_opslimit_sensitive` `crypto_pwhash_memlimit_sensitive`
  - `crypto_shorthash` `crypto_generichash_init` `crypto_generichash_update` `crypto_generichash_final`
+ - `crypto_kdf_keygen` `crypto_kdf_derive_from_key`
  - `crypto_aead_chacha20poly1305_ietf_encrypt` `crypto_aead_chacha20poly1305_ietf_decrypt` `crypto_aead_chacha20poly1305_ietf_encrypt_detached` `crypto_aead_chacha20poly1305_ietf_decrypt_detached`
  - `sodium_memzero` `sodium_memcmp` `sodium_increment`
 
