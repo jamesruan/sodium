@@ -27,14 +27,6 @@ func (k BoxPublicKey) Size() int {
 	return cryptoBoxPublicKeyBytes
 }
 
-type CommonKey struct {
-	Bytes
-}
-
-func (k CommonKey) Size() int {
-	return cryptoScalarmultBytes
-}
-
 type BoxSecretKey struct {
 	Bytes
 }
@@ -48,13 +40,6 @@ func (k BoxSecretKey) PublicKey() BoxPublicKey {
 	checkTypedSize(&k, "SecretKey")
 
 	return BoxPublicKey(CryptoScalarmultBase(Scalar(k)))
-}
-
-//CommonKey calculates common key from BoxSecretKey and other's BoxPublicKey.
-func (k BoxSecretKey) CommonKey(p BoxPublicKey) CommonKey {
-	checkTypedSize(&p, "PublicKey")
-
-	return CommonKey(CryptoScalarmult(Scalar(k), Scalar(p)))
 }
 
 type BoxSeed struct {

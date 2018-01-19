@@ -86,25 +86,32 @@
 //
 //(X25519-XSalsa20-Poly1305)
 //
-//Diffie-Hellman Key Exchange
+//Key Exchanging
 //
-//BoxPublicKey can be calculated from BoxSecretKey:
+//Server and Client exchange their public key and calculates a common session key with their own
+//secret key.
 //
-//    //High-level function should be used most of the time.
-//    func (k BoxSecretKey) PublicKey() BoxPublicKey
+//    type KXKP struct {
+//        PublicKey KXPublicKey
+//        SecretKey KXSecretKey
+//    }
+//    func MakeKXKP() KXKP
+//    func SeedKXKP(seed KXSeed) KXKP
 //
-//    //Low-level function:
-//    func CryptoScalarmultBase(n Scalar) (q Scalar)
+//    type KXSessionKeys struct {
+//        Rx KXSessionKey
+//        Tx KXSessionKey
+//    }
 //
-//A CommonKey can be calculated from BoxSecretKey and other's BoxPublicKey:
+//    // session keys for client
+//    func (kp KXKP) ClientSessionKeys(server_pk KXPublicKey) (*KXSessionKeys, error)
 //
-//    //High-level function should be used most of the time.
-//    func (k BoxSecretKey) CommonKey(p BoxPublicKey) CommonKey
+//    // session keys for server
+//    func (kp KXKP) ServerSessionKeys(client_pk KXPublicKey) (*KXSessionKeys, error) {
+//    // client's rx == server's tx
+//    // client's tx == server's rx
 //
-//    //Low-level function.
-//    func CryptoScalarmult(n, p Scalar) (q ScalarMult)
-//
-//(X25519)
+//(rx || tx = BLAKE2B-512(p.n || client_pk || server_pk))
 //
 //Secret Key Authentication
 //
@@ -176,6 +183,7 @@ var (
 	ErrOpenSign    = errors.New("sodium: Signature forged")
 	ErrDecryptAEAD = errors.New("sodium: Can't decrypt message")
 	ErrPassword    = errors.New("sodium: Password not matched")
+	ErrInvalidKey  = errors.New("sodium: Invalid key")
 )
 
 //Typed has pre-defined size.

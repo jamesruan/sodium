@@ -22,6 +22,7 @@ Following functions included:
  - `crypto_pwhash_opslimit_sensitive` `crypto_pwhash_memlimit_sensitive`
  - `crypto_shorthash` `crypto_generichash_init` `crypto_generichash_update` `crypto_generichash_final`
  - `crypto_kdf_keygen` `crypto_kdf_derive_from_key`
+ - `crypto_kx_keypair` `crypto_kx_seed_keypair` `crypto_kx_server_session_keys` `crypto_kx_client_session_keys`
  - `crypto_aead_chacha20poly1305_ietf_encrypt` `crypto_aead_chacha20poly1305_ietf_decrypt` `crypto_aead_chacha20poly1305_ietf_encrypt_detached` `crypto_aead_chacha20poly1305_ietf_decrypt_detached`
  - `sodium_memzero` `sodium_memcmp` `sodium_increment`
 

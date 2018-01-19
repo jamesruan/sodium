@@ -143,16 +143,6 @@ func ExampleBoxSecretKey_PublicKey() {
 	//Output: true
 }
 
-func ExampleBoxSecretKey_CommonKey() {
-	skp := MakeBoxKP()
-	rkp := MakeBoxKP()
-	sck := skp.SecretKey.CommonKey(rkp.PublicKey)
-	rck := rkp.SecretKey.CommonKey(skp.PublicKey)
-
-	fmt.Println(MemCmp(sck.Bytes, rck.Bytes, sck.Length()) == 0)
-	//Output: true
-}
-
 func ExampleNewGenericHashKeyed() {
 	kp := MakeBoxKP()
 	key := GenericHashKey{kp.SecretKey.Bytes}
@@ -335,4 +325,22 @@ func ExampleMasterKey_Derive() {
 	fmt.Println(sk.Length() == CryptoKDFBytesMin)
 	//Output: testblab
 	//true
+}
+
+func ExampleMakeKXKP() {
+	skp := MakeKXKP()
+	ckp := MakeKXKP()
+
+	sss, _ := skp.ServerSessionKeys(ckp.PublicKey)
+	css, _ := ckp.ClientSessionKeys(skp.PublicKey)
+
+	fmt.Println(MemCmp(sss.Tx.Bytes, css.Rx.Bytes, sss.Tx.Size()) == 0)
+	fmt.Println(MemCmp(sss.Rx.Bytes, css.Tx.Bytes, sss.Rx.Size()) == 0)
+
+	fmt.Println(MemCmp(sss.Tx.Bytes, sss.Rx.Bytes, sss.Tx.Size()) == 0)
+	fmt.Println(MemCmp(css.Tx.Bytes, css.Rx.Bytes, css.Tx.Size()) == 0)
+	//Output: true
+	//true
+	//false
+	//false
 }
