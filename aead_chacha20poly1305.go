@@ -40,22 +40,27 @@ func (AEADCPMAC) Size() int {
 }
 
 //AEADCPEncrypt encrypts message with AEADCPKey, and AEADCPNonce.
-//Message then authenticated with additional data data 'ad'.
+//Message then authenticated with additional data 'ad'.
 //Authentication tag is append to the encrypted data.
 func (b Bytes) AEADCPEncrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	c = make([]byte, b.Length()+cryptoAEADChaCha20Poly1305IETFABytes)
+	bp, bl := b.plen()
+	c = make([]byte, bl+cryptoAEADChaCha20Poly1305IETFABytes)
+	cp, _ := c.plen()
+
 	var outlen C.ulonglong
 
+	adp, adl := ad.plen()
+
 	if int(C.crypto_aead_chacha20poly1305_ietf_encrypt(
-		(*C.uchar)(&c[0]),
+		(*C.uchar)(cp),
 		&outlen,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(nil),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
@@ -73,17 +78,21 @@ func (b Bytes) AEADCPEncrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes) {
 func (b Bytes) AEADCPDecrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (m Bytes, err error) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
-	m = make([]byte, b.Length()-cryptoAEADChaCha20Poly1305IETFABytes)
+	bp, bl := b.plen()
+	m = make([]byte, bl-cryptoAEADChaCha20Poly1305IETFABytes)
+	mp, _ := m.plen()
+	adp, adl := ad.plen()
+
 	var outlen C.ulonglong
 
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt(
-		(*C.uchar)(&m[0]),
+		(*C.uchar)(mp),
 		&outlen,
 		(*C.uchar)(nil),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
 		err = ErrDecryptAEAD
@@ -93,23 +102,29 @@ func (b Bytes) AEADCPDecrypt(ad Bytes, n AEADCPNonce, k AEADCPKey) (m Bytes, err
 }
 
 //AEADCPEncryptDetached encrypts message with AEADCPKey, and AEADCPNonce.
-//Message then authenticated with additional data data 'ad'.
+//Message then authenticated with additional data 'ad'.
 //Authentication tag is separated saved as 'mac'.
 func (b Bytes) AEADCPEncryptDetached(ad Bytes, n AEADCPNonce, k AEADCPKey) (c Bytes, mac AEADCPMAC) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
+
+	bp, bl := b.plen()
+	adp, adl := ad.plen()
+
 	c = make([]byte, b.Length())
+	cp, _ := c.plen()
+
 	macb := make([]byte, cryptoAEADChaCha20Poly1305IETFABytes)
 	var outlen C.ulonglong
 
 	if int(C.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
-		(*C.uchar)(&c[0]),
+		(*C.uchar)(cp),
 		(*C.uchar)(&macb[0]),
 		&outlen,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(nil),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
@@ -127,16 +142,19 @@ func (b Bytes) AEADCPDecryptDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k A
 	checkTypedSize(&mac, "public mac")
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
-	m = make([]byte, b.Length())
 
+	bp, bl := b.plen()
+	adp, adl := ad.plen()
+	m = make([]byte, bl)
+	mp, _ := m.plen()
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
-		(*C.uchar)(&m[0]),
+		(*C.uchar)(mp),
 		(*C.uchar)(nil),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&mac.Bytes[0]),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
 		err = ErrDecryptAEAD
@@ -152,14 +170,17 @@ func (b Bytes) AEADCPVerify(ad Bytes, n AEADCPNonce, k AEADCPKey) (err error) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
+	bp, bl := b.plen()
+	adp, adl := ad.plen()
+
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt(
 		(*C.uchar)(nil),
 		(*C.ulonglong)(nil),
 		(*C.uchar)(nil),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
 		err = ErrDecryptAEAD
@@ -176,14 +197,17 @@ func (b Bytes) AEADCPVerifyDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k AE
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
+	bp, bl := b.plen()
+	adp, adl := ad.plen()
+
 	if int(C.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
 		(*C.uchar)(nil),
 		(*C.uchar)(nil),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&mac.Bytes[0]),
-		(*C.uchar)(&ad[0]),
-		(C.ulonglong)(ad.Length()),
+		(*C.uchar)(adp),
+		(C.ulonglong)(adl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&k.Bytes[0]))) != 0 {
 		err = ErrDecryptAEAD

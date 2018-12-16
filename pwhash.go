@@ -17,6 +17,7 @@ var (
 	CryptoPWHashMemLimitSensitive   = int(C.crypto_pwhash_memlimit_sensitive())
 )
 
+// PWHashSalt implements the Typed interface
 type PWHashSalt struct {
 	Bytes
 }
@@ -36,6 +37,7 @@ func LoadPWHashStr(b Bytes) PWHashStr {
 	return *t
 }
 
+// Value returns the underlying bytes for PWHashStr
 func (s PWHashStr) Value() Bytes {
 	return Bytes(s.string)
 }
@@ -52,35 +54,6 @@ func (s *PWHashStr) setBytes(b Bytes) {
 	t := PWHashStr{string(b[:])}
 	checkTypedSize(&t, "PWHashStr")
 	*s = t
-}
-
-func PWHashDefault(t Typed, pw string, salt PWHashSalt) {
-	PWHash(t, pw, salt, CryptoPWHashOpsLimitInteractive, CryptoPWHashMemLimitInteractive)
-}
-
-func PWHash(t Typed, pw string, salt PWHashSalt, opslimit int, memlimit int) {
-	outlen := t.Size()
-	if outlen < 16 {
-		panic("output length too short")
-	}
-
-	s := make([]byte, outlen)
-	pwc := C.CString(pw)
-	defer C.free(unsafe.Pointer(pwc))
-
-	if int(C.crypto_pwhash(
-		(*C.uchar)(&s[0]),
-		(C.ulonglong)(outlen),
-		pwc,
-		(C.ulonglong)(len(pw)),
-		(*C.uchar)(&salt.Bytes[0]),
-		(C.ulonglong)(opslimit),
-		(C.size_t)(memlimit),
-		C.crypto_pwhash_alg_default())) != 0 {
-		panic("see libsodium")
-	}
-
-	t.setBytes(s)
 }
 
 //PWHashStore use moderate profile to pack hashed password into PWHashStr.
@@ -112,6 +85,23 @@ func PWHashStoreSensitive(pw string) PWHashStr {
 		(C.ulonglong)(len(pw)),
 		(C.ulonglong)(CryptoPWHashOpsLimitSensitive),
 		(C.size_t)(CryptoPWHashMemLimitSensitive))) != 0 {
+		panic("see libsodium")
+	}
+	return PWHashStr{C.GoString(&s[0])}
+}
+
+//PWHashStoreInteractive use interactive profile to pack hashed password into PWHashStr.
+func PWHashStoreInteractive(pw string) PWHashStr {
+	s := make([]C.char, cryptoPWHashStrBytes)
+	pwc := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwc))
+
+	if int(C.crypto_pwhash_str(
+		&s[0],
+		pwc,
+		(C.ulonglong)(len(pw)),
+		(C.ulonglong)(CryptoPWHashOpsLimitInteractive),
+		(C.size_t)(CryptoPWHashMemLimitInteractive))) != 0 {
 		panic("see libsodium")
 	}
 	return PWHashStr{C.GoString(&s[0])}

@@ -12,6 +12,35 @@ func TestInit(t *testing.T) {
 	rand.Read(m)
 }
 
+func TestByte(t *testing.T) {
+	b := Bytes{}
+	bp, bl := b.plen()
+	if bp != nil {
+		t.FailNow()
+	}
+	if bl != 0 {
+		t.FailNow()
+	}
+
+	b = Bytes(make([]byte, 0, 1024))
+	bp, bl = b.plen()
+	if bp != nil {
+		t.FailNow()
+	}
+	if bl != 0 {
+		t.FailNow()
+	}
+
+	b = Bytes(make([]byte, 1024))
+	bp, bl = b.plen()
+	if bp == nil {
+		t.FailNow()
+	}
+	if bl != 1024 {
+		t.FailNow()
+	}
+}
+
 func ExampleBytes_Auth() {
 	key := MACKey{}
 	Randomize(&key)
@@ -267,17 +296,6 @@ func ExampleBytes_AEADCPVerifyDetached() {
 	err := e.AEADCPVerifyDetached(mac, ad, n, key)
 	fmt.Println(err)
 	//Output: <nil>
-}
-
-func ExamplePWHashDefault() {
-	key := AEADCPKey{}
-
-	salt := PWHashSalt{}
-	Randomize(&salt)
-
-	PWHashDefault(&key, "password", salt)
-	fmt.Println(key.Length() == key.Size())
-	//Output: true
 }
 
 func ExamplePWHashStore() {

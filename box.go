@@ -114,11 +114,12 @@ func SeedBoxKP(seed BoxSeed) BoxKP {
 //The receiver can open the box but can not verify the identity of the sender.
 func (b Bytes) SealedBox(pk BoxPublicKey) (cm Bytes) {
 	checkTypedSize(&pk, "PublicKey")
+	bp, bl := b.plen()
 	cm = make([]byte, b.Length()+cryptoBoxSealBytes)
 	if int(C.crypto_box_seal(
 		(*C.uchar)(&cm[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&pk.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
@@ -133,11 +134,13 @@ func (b Bytes) SealedBox(pk BoxPublicKey) (cm Bytes) {
 func (b Bytes) SealedBoxOpen(kp BoxKP) (m Bytes, err error) {
 	checkTypedSize(&kp.PublicKey, "receiver's PublicKey")
 	checkTypedSize(&kp.SecretKey, "receiver's SecretKey")
+	bp, bl := b.plen()
 	m = make([]byte, b.Length()-cryptoBoxSealBytes)
+	mp, _ := m.plen()
 	if int(C.crypto_box_seal_open(
-		(*C.uchar)(&m[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(mp),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&kp.PublicKey.Bytes[0]),
 		(*C.uchar)(&kp.SecretKey.Bytes[0]))) != 0 {
 		err = ErrOpenBox
@@ -153,11 +156,12 @@ func (b Bytes) Box(n BoxNonce, pk BoxPublicKey, sk BoxSecretKey) (c Bytes) {
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&pk, "receiver's public key")
 	checkTypedSize(&sk, "sender's secret key")
+	bp, bl := b.plen()
 	c = make([]byte, b.Length()+cryptoBoxMacBytes)
 	if int(C.crypto_box_easy(
 		(*C.uchar)(&c[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&pk.Bytes[0]),
 		(*C.uchar)(&sk.Bytes[0]))) != 0 {
@@ -175,11 +179,13 @@ func (b Bytes) BoxOpen(n BoxNonce, pk BoxPublicKey, sk BoxSecretKey) (m Bytes, e
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&pk, "receiver's public key")
 	checkTypedSize(&sk, "sender's secret key")
+	bp, bl := b.plen()
 	m = make([]byte, b.Length()-cryptoBoxMacBytes)
+	mp, _ := m.plen()
 	if int(C.crypto_box_open_easy(
-		(*C.uchar)(&m[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(mp),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&pk.Bytes[0]),
 		(*C.uchar)(&sk.Bytes[0]))) != 0 {
@@ -198,13 +204,15 @@ func (b Bytes) BoxDetached(n BoxNonce, pk BoxPublicKey, sk BoxSecretKey) (mac Bo
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&pk, "receiver's public key")
 	checkTypedSize(&sk, "sender's secret key")
-	c = make([]byte, b.Length())
+	bp, bl := b.plen()
+	c = make([]byte, bl)
+	cp, _ := c.plen()
 	macb := make([]byte, cryptoBoxMacBytes)
 	if int(C.crypto_box_detached(
-		(*C.uchar)(&c[0]),
+		(*C.uchar)(cp),
 		(*C.uchar)(&macb[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&pk.Bytes[0]),
 		(*C.uchar)(&sk.Bytes[0]))) != 0 {
@@ -224,12 +232,14 @@ func (b Bytes) BoxOpenDetached(mac BoxMAC, n BoxNonce, pk BoxPublicKey, sk BoxSe
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&pk, "receiver's public key")
 	checkTypedSize(&sk, "sender's secret key")
-	m = make([]byte, b.Length())
+	bp, bl := b.plen()
+	m = make([]byte, bl)
+	mp, _ := m.plen()
 	if int(C.crypto_box_open_detached(
-		(*C.uchar)(&m[0]),
-		(*C.uchar)(&b[0]),
+		(*C.uchar)(mp),
+		(*C.uchar)(bp),
 		(*C.uchar)(&mac.Bytes[0]),
-		(C.ulonglong)(b.Length()),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&n.Bytes[0]),
 		(*C.uchar)(&pk.Bytes[0]),
 		(*C.uchar)(&sk.Bytes[0]))) != 0 {

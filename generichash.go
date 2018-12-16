@@ -4,7 +4,10 @@ package sodium
 // #include <stdlib.h>
 // #include <sodium.h>
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
 
 var (
 	cryptoGenericHashBytesMin    = int(C.crypto_generichash_bytes_min())
@@ -50,7 +53,7 @@ func NewGenericHashDefaultKeyed(key GenericHashKey) GenericHash {
 //Unkeyed version, output length should between 16 (128-bit) to 64 (512-bit).
 func NewGenericHash(outlen int) GenericHash {
 	checkSizeInRange(outlen, cryptoGenericHashBytesMin, cryptoGenericHashBytesMax, "out")
-	state := new(C.struct_crypto_generichash_blake2b_state)
+	state := (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
 	hash := GenericHash{
 		size:      outlen,
 		blocksize: 128,
@@ -65,7 +68,7 @@ func NewGenericHash(outlen int) GenericHash {
 //Keyed version, output length in bytes should between 16 (128-bit) to 64 (512-bit).
 func NewGenericHashKeyed(outlen int, key GenericHashKey) GenericHash {
 	checkSizeInRange(outlen, cryptoGenericHashBytesMin, cryptoGenericHashBytesMax, "out")
-	state := new(C.struct_crypto_generichash_blake2b_state)
+	state := (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
 	checkTypedSize(&key, "generic hash key")
 	hash := GenericHash{
 		size:      outlen,
@@ -92,6 +95,12 @@ func (g GenericHash) BlockSize() int {
 
 //Implements hash.Hash
 func (g *GenericHash) Reset() {
+	if g.state == nil {
+		g.state = (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
+	}
+	if g.sum != nil {
+		g.sum = nil
+	}
 	if g.key != nil {
 		if int(C.crypto_generichash_init(
 			g.state,
@@ -144,9 +153,10 @@ func (g *GenericHash) Write(p []byte) (n int, err error) {
 //Return appended the Sum after b.
 //
 //Implements hash.Hash.
+//
 //NOTE: Repeated call is allowed. But can't call Write() after Sum().
-// Sum() will change the underlying state.
-// It is not consistent with the definition of hash.Hash.
+// The underlying state is freed. It MUST be Reset() to use it again after calling Sum().
+// This behaviour is inconsistent with the definition of hash.Hash.
 func (g *GenericHash) Sum(b []byte) []byte {
 	if g.sum != nil {
 		return append(b, g.sum...)
@@ -158,5 +168,7 @@ func (g *GenericHash) Sum(b []byte) []byte {
 		(C.size_t)(g.size))) != 0 {
 		panic("see libsodium")
 	}
+	C.sodium_free(unsafe.Pointer(g.state))
+	g.state = nil
 	return append(b, g.sum...)
 }

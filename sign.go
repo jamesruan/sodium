@@ -5,12 +5,15 @@ package sodium
 // #include <sodium.h>
 import "C"
 
+import "unsafe"
+
 var (
 	cryptoSignBytes          = int(C.crypto_sign_bytes())
 	cryptoSignSeedBytes      = int(C.crypto_sign_seedbytes())
 	cryptoSignPublicKeyBytes = int(C.crypto_sign_publickeybytes())
 	cryptoSignSecretKeyBytes = int(C.crypto_sign_secretkeybytes())
 	cryptoSignPrimitive      = C.GoString(C.crypto_sign_primitive())
+	cryptoSignStateBytes     = int(C.crypto_sign_statebytes())
 )
 
 type SignKP struct {
@@ -137,14 +140,15 @@ func (b Signature) Size() int {
 //Sign returns 'sm': signature+message
 func (b Bytes) Sign(key SignSecretKey) (sm Bytes) {
 	checkTypedSize(&key, "Sign SecretKey")
-	sm = make([]byte, b.Length()+cryptoSignBytes)
+	bp, bl := b.plen()
+	sm = make([]byte, bl+cryptoSignBytes)
 	var smlen C.ulonglong
 
 	if int(C.crypto_sign(
 		(*C.uchar)(&sm[0]),
 		&smlen,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
@@ -157,13 +161,14 @@ func (b Bytes) Sign(key SignSecretKey) (sm Bytes) {
 func (b Bytes) SignDetached(key SignSecretKey) (sig Signature) {
 	checkTypedSize(&key, "Sign SecretKey")
 	sigb := make([]byte, cryptoSignBytes)
+	bp, bl := b.plen()
 	var siglen C.ulonglong
 
 	if int(C.crypto_sign_detached(
 		(*C.uchar)(&sigb[0]),
 		&siglen,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
@@ -178,10 +183,11 @@ func (b Bytes) SignDetached(key SignSecretKey) (sig Signature) {
 func (b Bytes) SignVerifyDetached(sig Signature, key SignPublicKey) (err error) {
 	checkTypedSize(&sig, "Signature")
 	checkTypedSize(&key, "Sign PublicKey")
+	bp, bl := b.plen()
 	if int(C.crypto_sign_verify_detached(
 		(*C.uchar)(&sig.Bytes[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		err = ErrOpenSign
 	}
@@ -193,14 +199,16 @@ func (b Bytes) SignVerifyDetached(sig Signature, key SignPublicKey) (err error) 
 //It returns an error if verification failed.
 func (b Bytes) SignOpen(key SignPublicKey) (m Bytes, err error) {
 	checkTypedSize(&key, "Sign PublicKey")
-	m = make([]byte, b.Length()-cryptoSignBytes)
+	bp, bl := b.plen()
+	m = make([]byte, bl-cryptoSignBytes)
+	mp, _ := m.plen()
 	var mlen C.ulonglong
 
 	if int(C.crypto_sign_open(
-		(*C.uchar)(&m[0]),
+		(*C.uchar)(mp),
 		&mlen,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		err = ErrOpenSign
 	}
@@ -215,7 +223,7 @@ type SignState struct {
 // MakeSignState creates an empty state for multi-part messages that can't fit
 // in memory.
 func MakeSignState() SignState {
-	state := new(C.struct_crypto_sign_ed25519ph_state)
+	state := (*C.struct_crypto_sign_ed25519ph_state)(C.sodium_malloc(C.ulong(cryptoSignStateBytes)))
 	s := SignState{state}
 	if int(C.crypto_sign_init(
 		s.state)) != 0 {
@@ -225,17 +233,20 @@ func MakeSignState() SignState {
 }
 
 // Update the state by add more data.
-func (s *SignState) Update(b []byte) {
+func (s SignState) Update(b []byte) {
+	bp, bl := Bytes(b).plen()
 	if int(C.crypto_sign_update(
 		s.state,
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(len(b)))) != 0 {
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl))) != 0 {
 		panic("see libsodium")
 	}
 	return
 }
 
 // Sign a signature for the current state.
+//
+// The underlying state is freed after this call.
 func (s SignState) Sign(key SignSecretKey) Signature {
 	checkTypedSize(&key, "Sign SecretKey")
 	sigb := make([]byte, cryptoSignBytes)
@@ -248,6 +259,8 @@ func (s SignState) Sign(key SignSecretKey) Signature {
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
+	C.sodium_free(unsafe.Pointer(s.state))
+	s.state = nil
 
 	return Signature{sigb[:siglen]}
 }

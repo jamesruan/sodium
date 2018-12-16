@@ -173,9 +173,12 @@
 //KDF (BLAKE2B)
 package sodium
 
-import "errors"
-import "fmt"
-import "crypto/rand"
+import (
+	"crypto/rand"
+	"errors"
+	"fmt"
+	"unsafe"
+)
 
 var (
 	ErrAuth        = errors.New("sodium: Message forged")
@@ -203,6 +206,14 @@ func (b Bytes) Length() int {
 
 func (b *Bytes) setBytes(s Bytes) {
 	*b = s[:]
+}
+
+func (b Bytes) plen() (unsafe.Pointer, int) {
+	if len(b) > 0 {
+		return unsafe.Pointer(&b[0]), len(b)
+	} else {
+		return nil, 0
+	}
 }
 
 //Nonce is used to protect secret key. It is important to not use the same nonce for a given key.

@@ -16,11 +16,11 @@ func MemZero(buff1 Bytes) {
 
 //MemCmp compare to buffer without leaking timing infomation
 func MemCmp(buff1, buff2 Bytes, length int) int {
-	if length > len(buff1) || length > len(buff2) {
+	if length > buff1.Length() || length > buff2.Length() {
 		panic(fmt.Sprintf("Attempt to compare more bytes (%d) than provided "+
 			"(%d, %d)", length, len(buff1), len(buff2)))
 	}
-	return int(C.sodium_memcmp(unsafe.Pointer(&buff1[0]),
-		unsafe.Pointer(&buff2[0]),
-		C.size_t(length)))
+	b1, _ := buff1.plen()
+	b2, _ := buff2.plen()
+	return int(C.sodium_memcmp(b1, b2, C.size_t(length)))
 }

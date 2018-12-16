@@ -33,11 +33,13 @@ func (s ShortHashKey) Size() int {
 func (b Bytes) Shorthash(key ShortHashKey) (out Bytes) {
 	checkTypedSize(&key, "key")
 
+	bp, bl := b.plen()
+
 	out = make([]byte, cryptoShortHashBytes)
 	if int(C.crypto_shorthash(
 		(*C.uchar)(&out[0]),
-		(*C.uchar)(&b[0]),
-		(C.ulonglong)(b.Length()),
+		(*C.uchar)(bp),
+		(C.ulonglong)(bl),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
