@@ -149,6 +149,7 @@
 //decryption. The decryption would not be performed unless the authentication
 //tag is verified.
 //
+//    func MakeAEADCPKey() AEADCPKey
 //    func (n *AEADCPNonce) Next()
 //
 //    //encrypted message + MAC.
@@ -162,6 +163,7 @@
 //    func (b Bytes) AEADCPVerifyDetached(mac AEADCPMAC, ad Bytes, n AEADCPNonce, k AEADCPKey) (err error)
 //
 //AEADCP* (ChaCha20-Poly1305_IETF)
+//AEADXCP* (XChaCha20-Poly1305_IETF)
 //
 //Key Derivation
 //

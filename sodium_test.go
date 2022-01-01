@@ -231,8 +231,7 @@ func ExampleBytes_SecretBoxDetached() {
 }
 
 func ExampleBytes_AEADCPEncrypt() {
-	key := AEADCPKey{}
-	Randomize(&key)
+	key := MakeAEADCPKey()
 
 	n := AEADCPNonce{}
 	Randomize(&n)
@@ -249,8 +248,7 @@ func ExampleBytes_AEADCPEncrypt() {
 }
 
 func ExampleBytes_AEADCPVerify() {
-	key := AEADCPKey{}
-	Randomize(&key)
+	key := MakeAEADCPKey()
 
 	n := AEADCPNonce{}
 	Randomize(&n)
@@ -265,8 +263,7 @@ func ExampleBytes_AEADCPVerify() {
 }
 
 func ExampleBytes_AEADCPEncryptDetached() {
-	key := AEADCPKey{}
-	Randomize(&key)
+	key := MakeAEADCPKey()
 
 	n := AEADCPNonce{}
 	Randomize(&n)
@@ -283,8 +280,7 @@ func ExampleBytes_AEADCPEncryptDetached() {
 }
 
 func ExampleBytes_AEADCPVerifyDetached() {
-	key := AEADCPKey{}
-	Randomize(&key)
+	key := MakeAEADCPKey()
 
 	n := AEADCPNonce{}
 	Randomize(&n)
@@ -294,6 +290,70 @@ func ExampleBytes_AEADCPVerifyDetached() {
 	e, mac := m.AEADCPEncryptDetached(ad, n, key)
 
 	err := e.AEADCPVerifyDetached(mac, ad, n, key)
+	fmt.Println(err)
+	//Output: <nil>
+}
+
+func ExampleBytes_AEADXCPEncrypt() {
+	key := MakeAEADXCPKey()
+
+	n := AEADXCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e := m.AEADXCPEncrypt(ad, n, key)
+
+	md, err := e.AEADXCPDecrypt(ad, n, key)
+	fmt.Println(err)
+	fmt.Println(MemCmp(md, m, m.Length()) == 0)
+	//Output: <nil>
+	//true
+}
+
+func ExampleBytes_AEADXCPVerify() {
+	key := MakeAEADXCPKey()
+
+	n := AEADXCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e := m.AEADXCPEncrypt(ad, n, key)
+
+	err := e.AEADXCPVerify(ad, n, key)
+	fmt.Println(err)
+	//Output: <nil>
+}
+
+func ExampleBytes_AEADXCPEncryptDetached() {
+	key := MakeAEADXCPKey()
+
+	n := AEADXCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e, mac := m.AEADXCPEncryptDetached(ad, n, key)
+
+	md, err := e.AEADXCPDecryptDetached(mac, ad, n, key)
+	fmt.Println(err)
+	fmt.Println(MemCmp(md, m, m.Length()) == 0)
+	//Output: <nil>
+	//true
+}
+
+func ExampleBytes_AEADXCPVerifyDetached() {
+	key := MakeAEADXCPKey()
+
+	n := AEADXCPNonce{}
+	Randomize(&n)
+
+	ad := Bytes(`addtional data`)
+
+	e, mac := m.AEADXCPEncryptDetached(ad, n, key)
+
+	err := e.AEADXCPVerifyDetached(mac, ad, n, key)
 	fmt.Println(err)
 	//Output: <nil>
 }
