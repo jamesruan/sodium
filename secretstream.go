@@ -161,6 +161,7 @@ func (e *SecretStreamXCPEncoder) WriteAndClose(b []byte) (n int, err error) {
 		return 0, ErrUnknown
 	}
 	n, err = e.out.Write(c)
+	e.final = true
 	return
 }
 
@@ -180,14 +181,16 @@ func (e *SecretStreamXCPEncoder) Close() error {
 		return ErrUnknown
 	}
 	_, err := e.out.Write(mac)
+	e.final = true
 	return err
 }
 
 func MakeSecretStreamXCPEncoder (key SecretStreamXCPKey, out io.Writer) SecretStreamEncoder {
 	checkTypedSize(&key, "secret stream key")
-	encoder := SecretStreamXCPEncoder{}
-	encoder.out = out
-	encoder.header = SecretStreamXCPHeader{make([]byte, cryptoSecretStreamXChaCha20Poly1305HeaderBytes)}
+	encoder := SecretStreamXCPEncoder{
+		out: out,
+		header: SecretStreamXCPHeader{make([]byte, cryptoSecretStreamXChaCha20Poly1305HeaderBytes)},
+	}
 	if int(C.crypto_secretstream_xchacha20poly1305_init_push(
 		&encoder.state,
 		(*C.uchar)(&encoder.header.Bytes[0]),
@@ -232,6 +235,7 @@ func (e *SecretStreamXCPDecoder) Read(b []byte) (n int, err error) {
 	e.tag.fromCtag(tag)
 	if tag == C.crypto_secretstream_xchacha20poly1305_tag_final() {
 		err = io.EOF
+		e.final = true
 	}
 	return
 }
@@ -247,8 +251,9 @@ func (e SecretStreamXCPDecoder) Tag() SecretStreamTag {
 func MakeSecretStreamXCPDecoder (key SecretStreamXCPKey, in io.Reader, header SecretStreamXCPHeader) (SecretStreamDecoder, error) {
 	checkTypedSize(&key, "secret stream key")
 	checkTypedSize(&header, "secret stream header")
-	decoder := SecretStreamXCPDecoder{}
-	decoder.in = in
+	decoder := SecretStreamXCPDecoder{
+		in:    in,
+	}
 	if int(C.crypto_secretstream_xchacha20poly1305_init_pull(
 		&decoder.state,
 		(*C.uchar)(&header.Bytes[0]),

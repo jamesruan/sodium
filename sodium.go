@@ -34,10 +34,10 @@
 //(Ed25519)
 //
 //    //for multi-part messages that can't fit in memory
-//    func MakeSignState() SignState
-//    func (s SignState) Update(b []byte)
-//    func (s SignState) Sign(key SignSecretKey) Signature
-//    func (s SignState) Verify(sig Signature, key SignPublicKey) (err error)
+//    func NewSignState() *SignState
+//    func (s *SignState) Update(b []byte)
+//    func (s *SignState) Sign(key SignSecretKey) Signature
+//    func (s *SignState) Verify(sig Signature, key SignPublicKey) (err error)
 //
 //(Ed25519ph)
 //

@@ -5,15 +5,12 @@ package sodium
 // #include <sodium.h>
 import "C"
 
-import "unsafe"
-
 var (
 	cryptoSignBytes          = int(C.crypto_sign_bytes())
 	cryptoSignSeedBytes      = int(C.crypto_sign_seedbytes())
 	cryptoSignPublicKeyBytes = int(C.crypto_sign_publickeybytes())
 	cryptoSignSecretKeyBytes = int(C.crypto_sign_secretkeybytes())
 	cryptoSignPrimitive      = C.GoString(C.crypto_sign_primitive())
-	cryptoSignStateBytes     = int(C.crypto_sign_statebytes())
 )
 
 type SignKP struct {
@@ -217,26 +214,25 @@ func (b Bytes) SignOpen(key SignPublicKey) (m Bytes, err error) {
 }
 
 type SignState struct {
-	state *C.struct_crypto_sign_ed25519ph_state
+	state C.struct_crypto_sign_ed25519ph_state
 }
 
-// MakeSignState creates an empty state for multi-part messages that can't fit
+// NewSignState creates an empty state for multi-part messages that can't fit
 // in memory.
-func MakeSignState() SignState {
-	state := (*C.struct_crypto_sign_ed25519ph_state)(C.sodium_malloc(C.ulong(cryptoSignStateBytes)))
-	s := SignState{state}
+func NewSignState() *SignState {
+	s := SignState{}
 	if int(C.crypto_sign_init(
-		s.state)) != 0 {
+		&s.state)) != 0 {
 		panic("see libsodium")
 	}
-	return s
+	return &s
 }
 
 // Update the state by add more data.
-func (s SignState) Update(b []byte) {
+func (s *SignState) Update(b []byte) {
 	bp, bl := plen(b)
 	if int(C.crypto_sign_update(
-		s.state,
+		&s.state,
 		(*C.uchar)(bp),
 		(C.ulonglong)(bl))) != 0 {
 		panic("see libsodium")
@@ -247,20 +243,19 @@ func (s SignState) Update(b []byte) {
 // Sign a signature for the current state.
 //
 // The underlying state is freed after this call.
-func (s SignState) Sign(key SignSecretKey) Signature {
+func (s *SignState) Sign(key SignSecretKey) Signature {
 	checkTypedSize(&key, "Sign SecretKey")
 	sigb := make([]byte, cryptoSignBytes)
 	var siglen C.ulonglong
 
 	if int(C.crypto_sign_final_create(
-		s.state,
+		&s.state,
 		(*C.uchar)(&sigb[0]),
 		&siglen,
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		panic("see libsodium")
 	}
-	C.sodium_free(unsafe.Pointer(s.state))
-	s.state = nil
+	s.state = C.struct_crypto_sign_ed25519ph_state{}
 
 	return Signature{sigb[:siglen]}
 }
@@ -268,11 +263,11 @@ func (s SignState) Sign(key SignSecretKey) Signature {
 // Verify the signature with the current state and public key.
 //
 // It returns an error if verification failed.
-func (s SignState) Verify(sig Signature, key SignPublicKey) (err error) {
+func (s *SignState) Verify(sig Signature, key SignPublicKey) (err error) {
 	checkTypedSize(&sig, "Signature")
 	checkTypedSize(&key, "Sign PublicKey")
 	if int(C.crypto_sign_final_verify(
-		s.state,
+		&s.state,
 		(*C.uchar)(&sig.Bytes[0]),
 		(*C.uchar)(&key.Bytes[0]))) != 0 {
 		err = ErrOpenSign

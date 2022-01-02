@@ -3,7 +3,7 @@ A wrapper for [libsodium](https://github.com/jedisct1/libsodium) in golang
 
 See documents [![GoDoc](https://godoc.org/github.com/jamesruan/sodium?status.svg)](https://godoc.org/github.com/jamesruan/sodium).
 
-Currently this is build against libsodium 1.0.14.
+Currently this is build against libsodium 1.0.18.
 
 Following functions included:
  - `crypto_auth` `crypto_auth_verify`

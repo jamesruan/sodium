@@ -6,7 +6,7 @@ package sodium
 import "C"
 import (
 	"fmt"
-	"unsafe"
+	"hash"
 )
 
 var (
@@ -17,7 +17,6 @@ var (
 	cryptoGenericHashBytes       = int(C.crypto_generichash_bytes())
 	cryptoGenericHashKeyBytes    = int(C.crypto_generichash_keybytes())
 	cryptoGenericHashPrimitive   = C.GoString(C.crypto_generichash_primitive())
-	cryptoGenericHashStateBytes  = int(C.crypto_generichash_statebytes())
 )
 
 //GenericHash provides a BLAKE2b (RFC7693) hash, in interface of hash.Hash.
@@ -29,7 +28,7 @@ type GenericHash struct {
 	blocksize int
 	key       *GenericHashKey
 	sum       []byte
-	state     *C.struct_crypto_generichash_blake2b_state
+	state     C.struct_crypto_generichash_blake2b_state
 }
 
 type GenericHashKey struct {
@@ -41,44 +40,42 @@ func (GenericHashKey) Size() int {
 }
 
 //Unkeyed version with default output length.
-func NewGenericHashDefault() GenericHash {
+func NewGenericHashDefault() hash.Hash {
 	return NewGenericHash(cryptoGenericHashBytes)
 }
 
 //Keyed version with default output length.
-func NewGenericHashDefaultKeyed(key GenericHashKey) GenericHash {
+func NewGenericHashDefaultKeyed(key GenericHashKey) hash.Hash {
 	return NewGenericHashKeyed(cryptoGenericHashBytes, key)
 }
 
 //Unkeyed version, output length should between 16 (128-bit) to 64 (512-bit).
-func NewGenericHash(outlen int) GenericHash {
+func NewGenericHash(outlen int) hash.Hash {
 	checkSizeInRange(outlen, cryptoGenericHashBytesMin, cryptoGenericHashBytesMax, "out")
-	state := (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
 	hash := GenericHash{
 		size:      outlen,
 		blocksize: 128,
 		key:       nil,
 		sum:       nil,
-		state:     state,
+		state:     C.struct_crypto_generichash_blake2b_state{},
 	}
 	hash.Reset()
-	return hash
+	return &hash
 }
 
 //Keyed version, output length in bytes should between 16 (128-bit) to 64 (512-bit).
-func NewGenericHashKeyed(outlen int, key GenericHashKey) GenericHash {
+func NewGenericHashKeyed(outlen int, key GenericHashKey) hash.Hash {
 	checkSizeInRange(outlen, cryptoGenericHashBytesMin, cryptoGenericHashBytesMax, "out")
-	state := (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
 	checkTypedSize(&key, "generic hash key")
 	hash := GenericHash{
 		size:      outlen,
 		blocksize: 128,
 		key:       &key,
 		sum:       nil,
-		state:     state,
+		state:     C.struct_crypto_generichash_blake2b_state{},
 	}
 	hash.Reset()
-	return hash
+	return &hash
 }
 
 //Output length in bytes.
@@ -95,15 +92,12 @@ func (g GenericHash) BlockSize() int {
 
 //Implements hash.Hash
 func (g *GenericHash) Reset() {
-	if g.state == nil {
-		g.state = (*C.struct_crypto_generichash_blake2b_state)(C.sodium_malloc(C.ulong(cryptoGenericHashStateBytes)))
-	}
 	if g.sum != nil {
 		g.sum = nil
 	}
 	if g.key != nil {
 		if int(C.crypto_generichash_init(
-			g.state,
+			&g.state,
 			(*C.uchar)(&g.key.Bytes[0]),
 			(C.size_t)(g.key.Length()),
 			(C.size_t)(g.size))) != 0 {
@@ -111,7 +105,7 @@ func (g *GenericHash) Reset() {
 		}
 	} else {
 		if int(C.crypto_generichash_init(
-			g.state,
+			&g.state,
 			(*C.uchar)(nil),
 			(C.size_t)(0),
 			(C.size_t)(g.size))) != 0 {
@@ -133,7 +127,7 @@ func (g *GenericHash) Write(p []byte) (n int, err error) {
 		c := i[:g.blocksize]
 		i = i[g.blocksize:]
 		if int(C.crypto_generichash_update(
-			g.state,
+			&g.state,
 			(*C.uchar)(&c[0]),
 			(C.ulonglong)(g.blocksize))) != 0 {
 			panic("see libsodium")
@@ -141,7 +135,7 @@ func (g *GenericHash) Write(p []byte) (n int, err error) {
 	}
 	if len(i) > 0 {
 		if int(C.crypto_generichash_update(
-			g.state,
+			&g.state,
 			(*C.uchar)(&i[0]),
 			(C.ulonglong)(len(i)))) != 0 {
 			panic("see libsodium")
@@ -163,12 +157,11 @@ func (g *GenericHash) Sum(b []byte) []byte {
 	}
 	g.sum = make([]byte, g.size)
 	if int(C.crypto_generichash_final(
-		g.state,
+		&g.state,
 		(*C.uchar)(&g.sum[0]),
 		(C.size_t)(g.size))) != 0 {
 		panic("see libsodium")
 	}
-	C.sodium_free(unsafe.Pointer(g.state))
-	g.state = nil
+	g.state = C.struct_crypto_generichash_blake2b_state{}
 	return append(b, g.sum...)
 }

@@ -91,15 +91,15 @@ func ExampleBytes_SignDetached() {
 	//<nil>
 }
 
-func ExampleMakeSignState() {
+func ExampleNewSignState() {
 	kp := MakeSignKP()
 
-	s_a := MakeSignState()
+	s_a := NewSignState()
 	s_a.Update(m)
 
 	siga := s_a.Sign(kp.SecretKey)
 
-	s_b := MakeSignState()
+	s_b := NewSignState()
 	s_b.Update(m)
 
 	err := s_b.Verify(siga, kp.PublicKey)
