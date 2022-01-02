@@ -33,7 +33,7 @@ func (s ShortHashKey) Size() int {
 func (b Bytes) Shorthash(key ShortHashKey) (out Bytes) {
 	checkTypedSize(&key, "key")
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 
 	out = make([]byte, cryptoShortHashBytes)
 	if int(C.crypto_shorthash(

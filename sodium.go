@@ -165,6 +165,34 @@
 //AEADCP* (ChaCha20-Poly1305_IETF)
 //AEADXCP* (XChaCha20-Poly1305_IETF)
 //
+//Secret Key Streaming Encryption
+//
+//High-level streaming API that use AEAD construct. Using
+//`SecretStreamTag_Sync` to indicate the end of message. And this is
+//useful for application to parse the message earlier. Rekeying is
+//automatic. However using `SecretStreamTag_Rekey` explicitly ask for
+//rekeying. Typical usage is sending chunks with
+//`SecretStreamTag_Message`.
+//
+//     func MakeSecretStreamXCPKey() SecretStreamXCPKey
+//
+//     //decoder
+//     func MakeSecretStreamXCPDecoder(key SecretStreamXCPKey, in io.Reader, header SecretStreamXCPHeader) (SecretStreamDecoder, error)
+//     func (e *SecretStreamXCPDecoder) Read(b []byte) (n int, err error)
+//     func (e *SecretStreamXCPDecoder) SetAdditionData(ad []byte)
+//     func (e SecretStreamXCPDecoder) Tag() SecretStreamTag
+//
+//     //encoder
+//     func MakeSecretStreamXCPEncoder(key SecretStreamXCPKey, out io.Writer) SecretStreamEncoder
+//     func (e *SecretStreamXCPEncoder) Close() error
+//     func (e SecretStreamXCPEncoder) Header() SecretStreamXCPHeader
+//     func (e *SecretStreamXCPEncoder) SetAdditionData(ad []byte)
+//     func (e *SecretStreamXCPEncoder) SetTag(t SecretStreamTag)
+//     func (e *SecretStreamXCPEncoder) Write(b []byte) (n int, err error)
+//     func (e *SecretStreamXCPEncoder) WriteAndClose(b []byte) (n int, err error)
+//
+//XCP (XChaCha20-Poly1305_IETF)
+//
 //Key Derivation
 //
 //Deriving subkeys from a single high-entropy key
@@ -189,6 +217,10 @@ var (
 	ErrDecryptAEAD = errors.New("sodium: Can't decrypt message")
 	ErrPassword    = errors.New("sodium: Password not matched")
 	ErrInvalidKey  = errors.New("sodium: Invalid key")
+	ErrInvalidHeader  = errors.New("sodium: Invalid header")
+	ErrDecryptSS  = errors.New("sodium: Can't decrypt stream")
+	ErrInvalidState  = errors.New("sodium: Invalid state")
+	ErrUnknown = errors.New("sodium: Unknown")
 )
 
 //Typed has pre-defined size.
@@ -210,7 +242,7 @@ func (b *Bytes) setBytes(s Bytes) {
 	*b = s[:]
 }
 
-func (b Bytes) plen() (unsafe.Pointer, int) {
+func plen(b []byte) (unsafe.Pointer, int) {
 	if len(b) > 0 {
 		return unsafe.Pointer(&b[0]), len(b)
 	} else {

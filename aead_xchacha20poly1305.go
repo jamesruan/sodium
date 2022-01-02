@@ -52,13 +52,13 @@ func (b Bytes) AEADXCPEncrypt(ad Bytes, n AEADXCPNonce, k AEADXCPKey) (c Bytes) 
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	c = make([]byte, bl+cryptoAEADXChaCha20Poly1305IETFABytes)
-	cp, _ := c.plen()
+	cp, _ := plen(c)
 
 	var outlen C.ulonglong
 
-	adp, adl := ad.plen()
+	adp, adl := plen(ad)
 
 	if int(C.crypto_aead_xchacha20poly1305_ietf_encrypt(
 		(*C.uchar)(cp),
@@ -84,10 +84,10 @@ func (b Bytes) AEADXCPEncrypt(ad Bytes, n AEADXCPNonce, k AEADXCPKey) (c Bytes) 
 func (b Bytes) AEADXCPDecrypt(ad Bytes, n AEADXCPNonce, k AEADXCPKey) (m Bytes, err error) {
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	m = make([]byte, bl-cryptoAEADXChaCha20Poly1305IETFABytes)
-	mp, _ := m.plen()
-	adp, adl := ad.plen()
+	mp, _ := plen(m)
+	adp, adl := plen(ad)
 
 	var outlen C.ulonglong
 
@@ -114,11 +114,11 @@ func (b Bytes) AEADXCPEncryptDetached(ad Bytes, n AEADXCPNonce, k AEADXCPKey) (c
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
-	adp, adl := ad.plen()
+	bp, bl := plen(b)
+	adp, adl := plen(ad)
 
 	c = make([]byte, b.Length())
-	cp, _ := c.plen()
+	cp, _ := plen(c)
 
 	macb := make([]byte, cryptoAEADXChaCha20Poly1305IETFABytes)
 	var outlen C.ulonglong
@@ -149,10 +149,10 @@ func (b Bytes) AEADXCPDecryptDetached(mac AEADXCPMAC, ad Bytes, n AEADXCPNonce, 
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
-	adp, adl := ad.plen()
+	bp, bl := plen(b)
+	adp, adl := plen(ad)
 	m = make([]byte, bl)
-	mp, _ := m.plen()
+	mp, _ := plen(m)
 	if int(C.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
 		(*C.uchar)(mp),
 		(*C.uchar)(nil),
@@ -176,8 +176,8 @@ func (b Bytes) AEADXCPVerify(ad Bytes, n AEADXCPNonce, k AEADXCPKey) (err error)
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
-	adp, adl := ad.plen()
+	bp, bl := plen(b)
+	adp, adl := plen(ad)
 
 	if int(C.crypto_aead_xchacha20poly1305_ietf_decrypt(
 		(*C.uchar)(nil),
@@ -203,8 +203,8 @@ func (b Bytes) AEADXCPVerifyDetached(mac AEADXCPMAC, ad Bytes, n AEADXCPNonce, k
 	checkTypedSize(&n, "public nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
-	adp, adl := ad.plen()
+	bp, bl := plen(b)
+	adp, adl := plen(ad)
 
 	if int(C.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
 		(*C.uchar)(nil),

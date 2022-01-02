@@ -20,7 +20,7 @@ func MemCmp(buff1, buff2 Bytes, length int) int {
 		panic(fmt.Sprintf("Attempt to compare more bytes (%d) than provided "+
 			"(%d, %d)", length, len(buff1), len(buff2)))
 	}
-	b1, _ := buff1.plen()
-	b2, _ := buff2.plen()
+	b1, _ := plen(buff1)
+	b2, _ := plen(buff2)
 	return int(C.sodium_memcmp(b1, b2, C.size_t(length)))
 }

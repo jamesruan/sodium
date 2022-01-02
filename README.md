@@ -3,7 +3,7 @@ A wrapper for [libsodium](https://github.com/jedisct1/libsodium) in golang
 
 See documents [![GoDoc](https://godoc.org/github.com/jamesruan/sodium?status.svg)](https://godoc.org/github.com/jamesruan/sodium).
 
-Currently this is build against libsodium 1.0.13.
+Currently this is build against libsodium 1.0.14.
 
 Following functions included:
  - `crypto_auth` `crypto_auth_verify`
@@ -27,6 +27,8 @@ Following functions included:
  - `crypto_aead_chacha20poly1305_ietf_encrypt_detached` `crypto_aead_chacha20poly1305_ietf_decrypt_detached`
  - `crypto_aead_xchacha20poly1305_ietf_keygen` `crypto_aead_xchacha20poly1305_ietf_encrypt` `crypto_aead_xchacha20poly1305_ietf_decrypt`
  - `crypto_aead_xchacha20poly1305_ietf_encrypt_detached` `crypto_aead_xchacha20poly1305_ietf_decrypt_detached`
+ - `crypto_secretstream_xchacha20poly1305_keygen` `crypto_secretstream_xchacha20poly1305_push_init` `crypto_secretstream_xchacha20poly1305_push`
+ - `crypto_secretstream_xchacha20poly1305_pull_init` `crypto_secretstream_xchacha20poly1305_pull`
  - `sodium_memzero` `sodium_memcmp` `sodium_increment`
 
 > NOTE: This is a modified and enhanced version based on [github.com/GoKillers/libsodium-go](https://github.com/GoKillers/libsodium-go).

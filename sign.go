@@ -140,7 +140,7 @@ func (b Signature) Size() int {
 //Sign returns 'sm': signature+message
 func (b Bytes) Sign(key SignSecretKey) (sm Bytes) {
 	checkTypedSize(&key, "Sign SecretKey")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	sm = make([]byte, bl+cryptoSignBytes)
 	var smlen C.ulonglong
 
@@ -161,7 +161,7 @@ func (b Bytes) Sign(key SignSecretKey) (sm Bytes) {
 func (b Bytes) SignDetached(key SignSecretKey) (sig Signature) {
 	checkTypedSize(&key, "Sign SecretKey")
 	sigb := make([]byte, cryptoSignBytes)
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	var siglen C.ulonglong
 
 	if int(C.crypto_sign_detached(
@@ -183,7 +183,7 @@ func (b Bytes) SignDetached(key SignSecretKey) (sig Signature) {
 func (b Bytes) SignVerifyDetached(sig Signature, key SignPublicKey) (err error) {
 	checkTypedSize(&sig, "Signature")
 	checkTypedSize(&key, "Sign PublicKey")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	if int(C.crypto_sign_verify_detached(
 		(*C.uchar)(&sig.Bytes[0]),
 		(*C.uchar)(bp),
@@ -199,9 +199,9 @@ func (b Bytes) SignVerifyDetached(sig Signature, key SignPublicKey) (err error) 
 //It returns an error if verification failed.
 func (b Bytes) SignOpen(key SignPublicKey) (m Bytes, err error) {
 	checkTypedSize(&key, "Sign PublicKey")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	m = make([]byte, bl-cryptoSignBytes)
-	mp, _ := m.plen()
+	mp, _ := plen(m)
 	var mlen C.ulonglong
 
 	if int(C.crypto_sign_open(
@@ -234,7 +234,7 @@ func MakeSignState() SignState {
 
 // Update the state by add more data.
 func (s SignState) Update(b []byte) {
-	bp, bl := Bytes(b).plen()
+	bp, bl := plen(b)
 	if int(C.crypto_sign_update(
 		s.state,
 		(*C.uchar)(bp),

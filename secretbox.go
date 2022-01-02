@@ -44,7 +44,7 @@ func (b Bytes) SecretBox(n SecretBoxNonce, k SecretBoxKey) (c Bytes) {
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&k, "secret key")
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	c = make([]byte, bl+cryptoSecretBoxMacBytes)
 	if int(C.crypto_secretbox_easy(
 		(*C.uchar)(&c[0]),
@@ -64,9 +64,9 @@ func (b Bytes) SecretBox(n SecretBoxNonce, k SecretBoxKey) (c Bytes) {
 func (b Bytes) SecretBoxOpen(n SecretBoxNonce, k SecretBoxKey) (m Bytes, err error) {
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&k, "secret key")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	m = make([]byte, bl-cryptoSecretBoxMacBytes)
-	mp, _ := m.plen()
+	mp, _ := plen(m)
 	if int(C.crypto_secretbox_open_easy(
 		(*C.uchar)(mp),
 		(*C.uchar)(bp),
@@ -84,9 +84,9 @@ func (b Bytes) SecretBoxOpen(n SecretBoxNonce, k SecretBoxKey) (m Bytes, err err
 func (b Bytes) SecretBoxDetached(n SecretBoxNonce, k SecretBoxKey) (c Bytes, mac SecretBoxMAC) {
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&k, "secret key")
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	c = make([]byte, bl)
-	cp, _ := c.plen()
+	cp, _ := plen(c)
 	macb := make([]byte, cryptoSecretBoxMacBytes)
 	if int(C.crypto_secretbox_detached(
 		(*C.uchar)(cp),
@@ -111,9 +111,9 @@ func (b Bytes) SecretBoxOpenDetached(mac SecretBoxMAC, n SecretBoxNonce, k Secre
 	checkTypedSize(&n, "nonce")
 	checkTypedSize(&k, "key")
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	m = make([]byte, bl)
-	mp, _ := m.plen()
+	mp, _ := plen(m)
 	if int(C.crypto_secretbox_open_detached(
 		(*C.uchar)(mp),
 		(*C.uchar)(bp),

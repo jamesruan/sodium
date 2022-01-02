@@ -32,7 +32,7 @@ func (b Bytes) Auth(key MACKey) (mac MAC) {
 	checkTypedSize(&key, "Secret Key")
 	o := make([]byte, cryptoAuthBytes)
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	if int(C.crypto_auth(
 		(*C.uchar)(&o[0]),
 		(*C.uchar)(bp),
@@ -52,7 +52,7 @@ func (b Bytes) AuthVerify(mac MAC, key MACKey) (err error) {
 	checkTypedSize(&key, "Secret Key")
 	checkTypedSize(&mac, "MAC")
 
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	if int(C.crypto_auth_verify(
 		(*C.uchar)(&mac.Bytes[0]),
 		(*C.uchar)(bp),

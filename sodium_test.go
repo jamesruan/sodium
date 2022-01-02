@@ -1,8 +1,10 @@
 package sodium
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io"
 	"testing"
 )
 
@@ -14,7 +16,7 @@ func TestInit(t *testing.T) {
 
 func TestByte(t *testing.T) {
 	b := Bytes{}
-	bp, bl := b.plen()
+	bp, bl := plen(b)
 	if bp != nil {
 		t.FailNow()
 	}
@@ -23,7 +25,7 @@ func TestByte(t *testing.T) {
 	}
 
 	b = Bytes(make([]byte, 0, 1024))
-	bp, bl = b.plen()
+	bp, bl = plen(b)
 	if bp != nil {
 		t.FailNow()
 	}
@@ -32,7 +34,7 @@ func TestByte(t *testing.T) {
 	}
 
 	b = Bytes(make([]byte, 1024))
-	bp, bl = b.plen()
+	bp, bl = plen(b)
 	if bp == nil {
 		t.FailNow()
 	}
@@ -421,4 +423,67 @@ func ExampleMakeKXKP() {
 	//true
 	//false
 	//false
+}
+
+func ExampleSecretStreamXCPEncoder_Header() {
+	key := MakeSecretStreamXCPKey()
+	var buf bytes.Buffer 
+	encoder := MakeSecretStreamXCPEncoder(key, &buf)
+	b := encoder.Header().Bytes
+	fmt.Println(b.Length())
+	//Output: 24
+}
+
+func ExampleSecretStreamXCPEncoder_Write() {
+	key := MakeSecretStreamXCPKey()
+	var buf bytes.Buffer 
+	encoder := MakeSecretStreamXCPEncoder(key, &buf)
+	encoder.SetTag(SecretStreamTag_Sync)
+	encoder.Write([]byte("test"))
+	encoder.Close()
+	fmt.Println(buf.Len())
+	//Output: 38
+}
+
+func ExampleSecretStreamXCPEncoder_WriteAndClose() {
+	key := MakeSecretStreamXCPKey()
+	var buf bytes.Buffer 
+	encoder := MakeSecretStreamXCPEncoder(key, &buf)
+	encoder.SetTag(SecretStreamTag_Sync)
+	encoder.WriteAndClose([]byte("test"))
+	fmt.Println(buf.Len())
+	//Output: 21
+}
+
+func ExampleSecretStreamXCPDecoder_Read() {
+	key := MakeSecretStreamXCPKey()
+	var buf bytes.Buffer 
+	encoder := MakeSecretStreamXCPEncoder(key, &buf)
+	encoder.SetTag(SecretStreamTag_Rekey)
+	encoder.Write([]byte("test"))
+	encoder.Close()
+
+	var err error
+	reader := bytes.NewReader(buf.Bytes())
+	decoder, err := MakeSecretStreamXCPDecoder(key, reader, encoder.Header())
+	fmt.Println(err == nil)
+	chunk := make([]byte, 4)
+	for {
+		var n int
+		n, err = decoder.Read(chunk)
+		fmt.Println(n)
+		if (n > 0) {
+			fmt.Println(string(chunk))
+			fmt.Println(decoder.Tag() == SecretStreamTag_Rekey)
+		} else {
+			fmt.Println(err == io.EOF)
+			break;
+		}
+	}
+	//Output: true
+	//4
+	//test
+	//true
+	//0
+	//true
 }
